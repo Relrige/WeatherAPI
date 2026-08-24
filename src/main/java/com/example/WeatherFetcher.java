@@ -1,20 +1,22 @@
 package com.example;
 
 import com.example.retrofit.WeatherResponse;
-import com.example.retrofit.WeatherService;
-import io.github.cdimascio.dotenv.Dotenv;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import com.example.retrofit.WeatherResponse.*;
+import com.example.retrofit.WeatherResponse.ForecastDay;
+import com.example.retrofit.WeatherService;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WeatherFetcher {
     private final WeatherService service;
     private final String apiKey;
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private static final int FORECAST_DAYS = 2;
+    private static final int TOMORROW_INDEX = 1;
 
     public record CityResult(String city, ForecastDay forecast) {}
 
@@ -23,52 +25,23 @@ public class WeatherFetcher {
         this.service = Config.getWeatherService();
     }
 
-    public void fetch() {
-        List<String> cities = List.of("Chisinau", "Madrid", "Kyiv", "Amsterdam");
-
+    public List<CityResult> fetchAll(List<String> cities) {
         List<CompletableFuture<CityResult>> futures = cities.stream()
-                .map(city -> CompletableFuture.supplyAsync(() -> fetchNextDayForecast(city)))
+                .map(city -> CompletableFuture.supplyAsync(() -> fetchNextDayForecast(city), executor))
                 .toList();
 
-        List<CityResult> results = futures.stream()
+        return futures.stream()
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .toList();
-
-        if (results.isEmpty()) {
-            System.out.println("No data retrieved.");
-            return;
-        }
-
-        String targetDate = results.get(0).forecast().date();
-
-        System.out.println("-".repeat(85));
-        System.out.printf("%-12s | %-70s%n", "City", "Date: " + targetDate);
-        System.out.printf("%-12s | %-12s | %-12s | %-12s | %-12s | %-10s%n",
-                "", "Min Temp(°C)", "Max Temp(°C)", "Humidity(%)", "Wind(kph)", "Wind Dir");
-        System.out.println("-".repeat(85));
-
-        for (CityResult res : results) {
-            Day day = res.forecast().day();
-            String noonWindDir = res.forecast().hour().get(12).windDir();
-
-            System.out.printf("%-12s | %-12.1f | %-12.1f | %-12d | %-12.1f | %-10s%n",
-                    res.city(),
-                    day.minTempC(),
-                    day.maxTempC(),
-                    day.avgHumidity(),
-                    day.maxWindKph(),
-                    noonWindDir);
-        }
-        System.out.println("-".repeat(85));
     }
 
     public CityResult fetchNextDayForecast(String city) {
         try {
-            Response<WeatherResponse> response = service.getForecast(apiKey, city, 2).execute();
+            Response<WeatherResponse> response = service.getForecast(apiKey, city, FORECAST_DAYS).execute();
 
             if (response.isSuccessful() && response.body() != null) {
-                ForecastDay tomorrow = response.body().forecast().forecastDayList().get(1);
+                ForecastDay tomorrow = response.body().forecast().forecastDayList().get(TOMORROW_INDEX);
                 return new CityResult(city, tomorrow);
             } else {
                 System.err.println("Failed to fetch data for " + city + ". Code: " + response.code());
@@ -77,5 +50,9 @@ public class WeatherFetcher {
             System.err.println("Error fetching data for " + city + ": " + e.getMessage());
         }
         return null;
+    }
+
+    public void shutdown() {
+        executor.shutdown();
     }
 }
