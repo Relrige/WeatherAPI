@@ -1,9 +1,12 @@
 package com.example;
 
+import com.example.retrofit.WeatherResponse;
+import com.example.retrofit.WeatherService;
 import io.github.cdimascio.dotenv.Dotenv;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import com.example.retrofit.WeatherResponse.*;
 
 import java.util.List;
 import java.util.Objects;
