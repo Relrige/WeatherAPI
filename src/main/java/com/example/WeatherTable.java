@@ -1,8 +1,11 @@
 package com.example;
 
-import java.util.List;
-import com.example.WeatherFetcher.CityResult;
 import com.example.retrofit.WeatherResponse;
+import com.example.utils.WindSummary;
+import com.example.WeatherFetcher.CityResult;
+import java.util.List;
+
+import static com.example.utils.WindCalculator.calculateAvgWind;
 
 public class WeatherTable {
     private final List<CityResult> results;
@@ -33,15 +36,15 @@ public class WeatherTable {
 
         for (CityResult res : results) {
             WeatherResponse.Day day = res.forecast().day();
-            String noonWindDir = res.forecast().hour().get(12).windDir();
+            WindSummary windSummary = calculateAvgWind(res.forecast().hour());
 
             sb.append(String.format("%-12s | %-12.1f | %-12.1f | %-12d | %-12.1f | %-10s%n",
                     res.city(),
                     day.minTempC(),
                     day.maxTempC(),
                     day.avgHumidity(),
-                    day.maxWindKph(),
-                    noonWindDir));
+                    windSummary.avgSpeedKph(),
+                    windSummary.avgDirection()));
         }
         sb.append(separator);
 

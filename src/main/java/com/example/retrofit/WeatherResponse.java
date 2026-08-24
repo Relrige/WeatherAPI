@@ -7,14 +7,14 @@ public record WeatherResponse(
         @SerializedName("forecast") Forecast forecast
 ) {
     public record Hour(
-            @SerializedName("wind_dir") String windDir
+            @SerializedName("wind_kph") double windKph,
+            @SerializedName("wind_degree") int windDegree
     ) {}
 
     public record Day(
             @SerializedName("mintemp_c") double minTempC,
             @SerializedName("maxtemp_c") double maxTempC,
-            @SerializedName("avghumidity") int avgHumidity,
-            @SerializedName("maxwind_kph") double maxWindKph
+            @SerializedName("avghumidity") int avgHumidity
     ) {}
 
     public record ForecastDay(
