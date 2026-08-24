@@ -7,6 +7,9 @@ import java.util.List;
 public class WindCalculator {
 
     public static WindSummary calculateAvgWind(List<Hour> hours) {
+        if (hours == null || hours.isEmpty()) {
+            return new WindSummary(0.0, "N/A");
+        }
         double avgSpeed = hours.stream()
                 .mapToDouble(Hour::windKph)
                 .average().orElse(0.0);

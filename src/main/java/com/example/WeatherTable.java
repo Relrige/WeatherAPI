@@ -8,6 +8,7 @@ import java.util.List;
 import static com.example.utils.WindCalculator.calculateAvgWind;
 
 public class WeatherTable {
+    private static final String ROW_FORMAT = "%-12s | %-12s | %-12s | %-12s | %-12s | %-10s%n";
     private final List<CityResult> results;
 
     public WeatherTable(List<CityResult> results) {
@@ -30,7 +31,7 @@ public class WeatherTable {
 
         sb.append(separator).append(System.lineSeparator());
         sb.append(String.format("%-12s | %-70s%n", "City", "Date: " + targetDate));
-        sb.append(String.format("%-12s | %-12s | %-12s | %-12s | %-12s | %-10s%n",
+        sb.append(String.format(ROW_FORMAT,
                 "", "Min Temp(°C)", "Max Temp(°C)", "Humidity(%)", "Wind(kph)", "Wind Dir"));
         sb.append(separator).append(System.lineSeparator());
 
@@ -38,7 +39,7 @@ public class WeatherTable {
             WeatherResponse.Day day = res.forecast().day();
             WindSummary windSummary = calculateAvgWind(res.forecast().hour());
 
-            sb.append(String.format("%-12s | %-12.1f | %-12.1f | %-12d | %-12.1f | %-10s%n",
+            sb.append(String.format(ROW_FORMAT,
                     res.city(),
                     day.minTempC(),
                     day.maxTempC(),

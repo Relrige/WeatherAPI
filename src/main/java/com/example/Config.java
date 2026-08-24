@@ -10,7 +10,11 @@ public class Config {
     private static WeatherService service;
 
     public static String getEnv(String variable) {
-        return dotenv.get(variable);
+        String value = dotenv.get(variable);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("Missing required env variable: " + variable);
+        }
+        return value;
     }
 
     public static WeatherService getWeatherService() {
