@@ -19,15 +19,8 @@ public class WeatherFetcher {
     public record CityResult(String city, ForecastDay forecast) {}
 
     public WeatherFetcher() {
-        Dotenv dotenv = Dotenv.load();
-        this.apiKey = dotenv.get("WeatherApi");
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.weatherapi.com/v1/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        this.service = retrofit.create(WeatherService.class);
+        this.apiKey = Config.getEnv("WEATHER_API_KEY");
+        this.service = Config.getWeatherService();
     }
 
     public void fetch() {
@@ -84,10 +77,5 @@ public class WeatherFetcher {
             System.err.println("Error fetching data for " + city + ": " + e.getMessage());
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        WeatherFetcher weatherFetcher = new WeatherFetcher();
-        weatherFetcher.fetch();
     }
 }
